@@ -23,23 +23,69 @@ use Livewire\Component;
 
 class ExampleController extends Controller
 {
+    //show the permissions divided by the delimiter
     public function example1()
     {
         $role = Role::with('permissions')->first();
         $permissionsListToShow = $role->permissions
-            ->map(fn($permission) => $permission->name)
-            ->implode("<br>");
+            ->map(fn($permission) => $permission->name)//from each permission, we need only the name
+            ->implode("<br>");//adding on something
 
         return view('example1');
     }
 
+    //find the key of array by items, with maximum value
+    public function example11()
+    {
+        $hazards = [
+            'BM-1' => 8,
+            'LT-1' => 7,
+            'LT-P1' => 6,
+            'LT-UNK' => 5,
+            'BM-2' => 4,
+            'BM-3' => 3,
+            'BM-4' => 2,
+            'BM-U' => 1,
+            'NoGS' => 0,
+            'Not Screened' => 0,
+        ];
+
+        //collection filter by array
+        $score = Score::all()
+            ->map(function ($item) use ($hazards) {
+                return $hazards[$item->field];
+            })->max();//run through the collection and take the max
+
+        info($score);
+
+        return view('example11');
+    }
+
+    //extract all multi-dimensional array of one level drop
+    //pluck and flatten
+    public function example12()
+    {
+        $elements = collect(config('setting_fields'))
+            ->pluck('elements')
+            ->flatten(1);
+        info($elements);
+
+        return view('example12');
+    }
+
     public function example2()
     {
-        Artisan::call('twitter:giveaway', [
-            '--exclude' => ['someuser', '@otheruser']
-        ]);
+        Artisan::call('twitter:giveaway', ['--exclude' => ['someuser', '@otheruser']]);
 
         return view('example2');
+    }
+
+    public function example2_1()
+    {
+        $excluded = collect($this->option('exclude'))
+            ->push('povilaskorop', '@dailylaravel')//adding items to the collection
+            ->map(fn (string $name): string => str_replace('@', '', $name))
+            ->implode(', ');
     }
 
     public function example3()
@@ -50,8 +96,8 @@ class ExampleController extends Controller
             'Facebook' => $user->link_facebook,
             'Instagram' => $user->link_instagram,
         ])
-            ->filter()
-            ->map(fn($link, $network) => '<a href="' . $link . '">' . $network . '</a>')
+            ->filter()//by default removes empty or null values
+            ->map(fn($link, $network) => '<a href="' . $link . '">' . $network . '</a>')//the map function has value then key
             ->implode(' | ');
 
         return view('example3', compact('user'));
@@ -79,14 +125,66 @@ class ExampleController extends Controller
         return view('example4');
     }
 
+    public function example7()
+    {
+        $comment = Comment::first();
+        collect($comment->mentionedUsers())
+            ->map(function ($name) {
+                return User::where('name', $name)->first();
+            })
+            ->filter()
+            ->each(function ($user) use ($comment) {
+                $user->notify(new YouWereMentionedNotification($comment));
+            });
+
+        return view('example7');
+    }
+
+    public function example9()
+    {
+        $locale = 'en';
+        $path = Category::all()
+            ->map(function ($i) use ($locale) {
+                return $i->getSlug($locale);
+            })
+            ->filter()
+            ->implode('/');
+        info($path);
+
+        return view('example9');
+    }
+
+    public function example13()
+    {
+        Post::all()
+            ->filter->isTweet()
+            ->filter(function (Post $post) {
+                return empty($post->external_url);
+            })
+            ->each(function (Post $post) {
+                preg_match('/(?=https:\/\/twitter.com\/).+?(?=")/', $post->text, $matches);
+
+                if (count($matches) > 0) {
+                    info($matches[0]);
+                    $post->external_url = $matches[0];
+
+                    // Update external_url
+                    // $post->save();
+                }
+            });
+
+        return view('example13');
+    }
+
     public function example5()
     {
         $events = Event::all();
         $filteredEvents = $events
-            ->unique(fn($event) => $event->message)
+            ->unique(fn($event) => $event->message)//filter out the repeating items
             ->filter(fn($event) => !is_null($event->subject))
             ->map(fn($event) => $this->extractData($event))
             ->values();
+
         info($filteredEvents);
 
         return view('example5');
@@ -144,20 +242,7 @@ class ExampleController extends Controller
         return view('example6');
     }
 
-    public function example7()
-    {
-        $comment = Comment::first();
-        collect($comment->mentionedUsers())
-            ->map(function ($name) {
-                return User::where('name', $name)->first();
-            })
-            ->filter()
-            ->each(function ($user) use ($comment) {
-                $user->notify(new YouWereMentionedNotification($comment));
-            });
 
-        return view('example7');
-    }
 
     public function example8()
     {
@@ -236,19 +321,7 @@ class ExampleController extends Controller
         return view('example8');
     }
 
-    public function example9()
-    {
-        $locale = 'en';
-        $path = Category::all()
-            ->map(function ($i) use ($locale) {
-                return $i->getSlug($locale);
-            })
-            ->filter()
-            ->implode('/');
-        info($path);
 
-        return view('example9');
-    }
 
     public function example10()
     {
@@ -267,61 +340,6 @@ class ExampleController extends Controller
         return view('example10');
     }
 
-    public function example11()
-    {
-        $hazards = [
-            'BM-1' => 8,
-            'LT-1' => 7,
-            'LT-P1' => 6,
-            'LT-UNK' => 5,
-            'BM-2' => 4,
-            'BM-3' => 3,
-            'BM-4' => 2,
-            'BM-U' => 1,
-            'NoGS' => 0,
-            'Not Screened' => 0,
-        ];
-
-        $score = Score::all()->map(function ($item) use ($hazards) {
-            return $hazards[$item->field];
-        })->max();
-
-        info($score);
-
-        return view('example11');
-    }
-
-    public function example12()
-    {
-        $elements = collect(config('setting_fields'))
-            ->pluck('elements')
-            ->flatten(1);
-        info($elements);
-
-        return view('example12');
-    }
-
-    public function example13()
-    {
-        Post::all()
-            ->filter->isTweet()
-            ->filter(function (Post $post) {
-                return empty($post->external_url);
-            })
-            ->each(function (Post $post) {
-                preg_match('/(?=https:\/\/twitter.com\/).+?(?=")/', $post->text, $matches);
-
-                if (count($matches) > 0) {
-                    info($matches[0]);
-                    $post->external_url = $matches[0];
-
-                    // Update external_url
-                    // $post->save();
-                }
-            });
-
-        return view('example13');
-    }
 
     public function example14()
     {

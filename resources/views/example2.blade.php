@@ -17,45 +17,46 @@ $excluded = collect($this->option('exclude'))
     ->implode(', ');
                     </pre>
 
-                    <hr />
+                    <hr/>
 
                     <div class="mt-4 mb-4">
-                    <b>Call with parameters</b>
-                    <pre class="bg-gray-100 p-2 mb-4">
+                        <b>Call with parameters</b>
+                        <pre class="bg-gray-100 p-2 mb-4">
 php artisan twitter:giveaway --exclude=someuser --exclude=@otheruser</pre>
                     </div>
 
-                    <hr />
+                    <hr/>
                     <div class="mt-4 mb-4">
                         Initial value of <b>collect($this->option('exclude'))</b>:
-                        <br />
+                        <br/>
                         @php dump(collect(['someuser', '@otheruser'])) @endphp
                     </div>
 
-                    <hr />
+                    <hr/>
                     <div class="mt-4 mb-4">
                         Value after <b>push()</b>:
-                        <br />
+                        <br/>
                         @php dump(collect(['someuser', '@otheruser'])->push('povilaskorop', '@dailylaravel')) @endphp
                     </div>
 
-                    <hr />
+                    <hr/>
                     <div class="mt-4 mb-4">
                         Value after <b>push()->map()</b>:
-                        <br />
+                        <br/>
                         @php dump(collect(['someuser', '@otheruser'])->push('povilaskorop', '@dailylaravel')->map(fn (string $name): string => str_replace('@', '', $name))) @endphp
                     </div>
 
-                    <hr />
+                    <hr/>
                     <div class="mt-4 mb-4">
                         Value after <b>push()->map()->implode()</b>:
-                        <br />
+                        <br/>
                         @php dump(collect(['someuser', '@otheruser'])->push('povilaskorop', '@dailylaravel')->map(fn (string $name): string => str_replace('@', '', $name))->implode(', ')) @endphp
                     </div>
 
-                    <hr />
+                    <hr/>
                     <div class="mt-4 mb-4">
-                        Inspiration source: <a class="underline" href="https://github.com/Gummibeer/gummibeer.de/blob/master/app/Console/Commands/TwitterGiveaway.php">Gummibeer/gummibeer.de</a>
+                        Inspiration source: <a class="underline"
+                                               href="https://github.com/Gummibeer/gummibeer.de/blob/master/app/Console/Commands/TwitterGiveaway.php">Gummibeer/gummibeer.de</a>
                     </div>
                 </div>
             </div>
